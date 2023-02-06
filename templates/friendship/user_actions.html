@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load users_tags %}
+{% load static %}
+{% block contents %}
+  {% include 'users_sidebar.html' %}
+  <br>
+  <br>
+  <br>
+  <br>
+  <div class="col-3">
+    <div class="input-group">
+      <input type="text" id="search_kw" class="form-control" value="{{ kw|default_if_none:'' }}">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary" type="button" id="btn_search">검색</button>
+      </div>
+    </div>
+  </div>
+  <table id="t" class="table showit">
+    {% for users in users %}
+      {% if user %}
+        <tr>
+          <td>{{ users.name }}</td>
+          <td>
+            <a href="{% url 'friendship:friendship_add_friend' users.id %}">add as friend</a>
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  </table>
+  <div class="row">
+    <div class="col-8 offset-2">
+      <ul class="pagination justify-content-center">
+        {% if users.has_previous %}
+          <li class="page-item">
+            <a class="page-link" data-page="1" href="javascript:void(0)">처음</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <a class="page-link" tabindex="-1" aria-disabled="true" href="#">처음</a>
+          </li>
+        {% endif %}
+        <!-- 이전페이지 -->
+        {% if users.has_previous %}
+          <li class="page-item" style="color:black;">
+            <a class="page-link" data-page="{{ users.previous_page_number }}" href="javascript:void(0)">이전</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <a class="page-link" tabindex="-1" aria-disabled="true" href="#">이전</a>
+          </li>
+        {% endif %}
+        <!-- 페이지리스트 -->
+        {% for page_number in users.paginator.page_range %}
+          {% if page_number >= users.number|add:-5 and page_number <= users.number|add:5 %}
+            {% if page_number == users.number %}
+              <li class="page-item active" aria-current="page">
+                <a class="page-link" data-page="{{ page_number }}" href="javascript:void(0)">{{ page_number }}</a>
+              </li>
+            {% else %}
+              <li class="page-item">
+                <a class="page-link" data-page="{{ page_number }}" href="javascript:void(0)">{{ page_number }}</a>
+              </li>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        <!-- 다음페이지 -->
+        {% if users.has_next %}
+          <li class="page-item">
+            <a class="page-link" data-page="{{ users.next_page_number }}" href="javascript:void(0)">다음</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <a class="page-link" tabindex="-1" aria-disabled="true" href="#">다음</a>
+          </li>
+        {% endif %}
+        {% if users.has_next %}
+          <li class="page-item">
+            <a class="page-link" data-page="{{ users.paginator.num_pages }}" href="javascript:void(0)">끝</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <a class="page-link" tabindex="-1" aria-disabled="true" href="#">끝</a>
+          </li>
+        {% endif %}
+      </ul>
+      <!-- 페이징처리 끝 -->
+    </div>
+
+    <form id="searchForm" method="get" action="{% url 'friendship:search_friends' %}">
+      <input type="hidden" id="kw" name="kw" value="{{ kw|default_if_none:'' }}">
+      <input type="hidden" id="page" name="page" value="{{ page }}">
+    </form>
+
+  {% endblock %}
+  {% block script %}
+    <script type='text/javascript'>
+    const page_elements = document.getElementsByClassName("page-link");
+    Array
+      .from(page_elements)
+      .forEach(function (element) {
+        element.addEventListener('click', function () {
+          document
+            .getElementById('page')
+            .value = this.dataset.page;
+          document
+            .getElementById('searchForm')
+            .submit();
+        });
+      });
+      const searchForm = document.querySelector("#searchForm");
+      const btn_search = document.getElementById("btn_search");
+      btn_search.addEventListener('click', function () {
+        document
+          .getElementById('kw')
+          .value = document
+          .getElementById('search_kw')
+          .value;
+      document
+        .getElementById('page')
+        .value = 1;
+        searchForm.submit();
+      });
+    </script>
+  {% endblock %}
